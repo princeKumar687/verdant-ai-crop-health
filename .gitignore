@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+!models/crop_disease_model.keras
+dataset/
+static/uploads/*
+!static/uploads/.gitkeep
+.env
+.venv/
+farm_registry.db

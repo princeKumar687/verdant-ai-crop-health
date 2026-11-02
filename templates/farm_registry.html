@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Activity Registry | Verdant AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='farm_registry.css') }}">
+</head>
+
+<body>
+
+    <div class="registry-container">
+
+        <header class="registry-header">
+            <h1>🌱 Farm Activity Registry</h1>
+            <p>Record your farming activities and explore agricultural
+               practices shared by farmers across different locations.</p>
+        </header>
+
+        <section class="registry-card">
+            <h2>Register Your Farm Activity</h2>
+
+            <form class="registry-form" id="farmForm" method="POST" action="{{ url_for('farm_registry') }}">
+
+                <div class="form-group">
+                    <label for="crop">Crop Name *</label>
+                    <input type="text" id="crop" name="crop"
+                           placeholder="e.g. Wheat, Rice, Tomato" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="activity">Farming Activity *</label>
+                    <select id="activity" name="activity" required>
+                        <option value="">Select activity</option>
+                        <option value="Planting">Crop planting</option>
+                        <option value="Fertilizer">Fertilizer application</option>
+                        <option value="Pesticide">Pesticide application</option>
+                        <option value="Irrigation">Irrigation</option>
+                        <option value="Harvesting">Harvesting</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Activity Date *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Village / District *</label>
+                    <input type="text" id="location" name="location"
+                           placeholder="e.g. Hoshiarpur, Punjab" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="details">Additional Details</label>
+                    <textarea id="details" name="details" rows="4"
+                              placeholder="Add quantity, fertilizer name or other details..."></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>
+                        <input type="checkbox" required>
+                        I agree to share these farming details publicly.
+                    </label>
+                </div>
+
+                <div class="full-width">
+                    <button type="submit" class="registry-button">
+                        Submit Farm Activity
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+        <section class="registry-card">
+    <h2>Public Farming Records</h2>
+    <p>Explore farming activities submitted by farmers.</p>
+
+    {% if records %}
+        {% for record in records %}
+            <div class="record-item">
+                <h3>{{ record.crop }}</h3>
+                <p><strong>Activity:</strong> {{ record.activity }}</p>
+                <p><strong>Date:</strong> {{ record.activity_date }}</p>
+                <p><strong>Location:</strong> {{ record.location }}</p>
+                {% if record.details %}
+                    <p><strong>Details:</strong> {{ record.details }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No farming records submitted yet.</p>
+    {% endif %}
+</section>
+    </div>
+
+</body>
+</html>

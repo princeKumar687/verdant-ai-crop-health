@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verdant AI — Crop Health</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#"><span class="brand-mark">✳</span><span>verdant<span class="brand-ai">.ai</span><small>INTELLIGENT AGRICULTURE</small></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav>
+      <a class="nav-link active" href="#overview"><span>▦</span> Overview</a>
+      <a class="nav-link" href="#detect"><span>⌕</span> Disease detection <b class="nav-new">AI</b></a>
+      <a class="nav-link" href="#advisory"><span>♧</span> Crop advisory</a>
+      <a class="nav-link" href="#history"><span>◷</span> Scan history</a>
+      <a class="nav-link" href="{{ url_for('farm_registry') }}">
+    <span>🌾</span> Farm Registry
+</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="help-card"><div class="help-icon">✦</div><strong>Growing better, together.</strong><p>Smarter insights for healthier harvests.</p><a href="#advisory">Explore guidance ↗</a></div>
+      <div class="profile"><div class="avatar">FA</div><div><strong>Farm Assistant</strong><small>Local workspace</small></div><span class="dots">•••</span></div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+      <div class="breadcrumb">Workspace <span>/</span> <strong>Overview</strong></div>
+      <div class="top-actions"><span class="status-dot"></span><span class="system-status">{{ 'AI model connected' if model_ready else 'AI model setup required' }}</span><button class="icon-btn" title="Notifications">♧</button><div class="avatar small">FA</div></div>
+    </header>
+    <section class="welcome" id="overview">
+      <div><div class="eyebrow"><span class="spark">✦</span> YOUR FARM, INSIGHTFULLY MANAGED</div><h1>Good day, <em>grower.</em></h1><p class="welcome-copy">A healthier crop starts with a closer look. Let AI help you spot the signs.</p></div>
+      <div class="date-pill"><span>◷</span><span id="today">Today</span></div>
+    </section>
+    <section class="stats-grid">
+      <article class="stat-card"><div class="stat-top"><span>Detection engine</span><span class="stat-icon green">✳</span></div><div class="stat-value">{{ 'Ready' if model_ready else 'Setup needed' }}</div><div class="stat-foot"><span class="tiny-dot {{ 'good' if model_ready else 'warn' }}"></span>{{ 'Model loaded and ready' if model_ready else 'Add a trained model to enable scans' }}</div></article>
+      <article class="stat-card"><div class="stat-top"><span>Supported crops</span><span class="stat-icon yellow">♧</span></div><div class="stat-value">14+</div><div class="stat-foot">Depends on your trained model</div></article>
+      <article class="stat-card"><div class="stat-top"><span>Analysis time</span><span class="stat-icon blue">⌁</span></div><div class="stat-value">Seconds</div><div class="stat-foot">After the model is configured</div></article>
+    </section>
+    <section class="content-grid">
+      <article class="panel detect-panel" id="detect">
+        <div class="panel-heading"><div><div class="section-kicker">AI-POWERED DIAGNOSTICS</div><h2>Check your crop health</h2><p>Upload a clear photo of a single crop leaf to get started.</p></div><span class="round-leaf">✳</span></div>
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" hidden>
+          <div class="upload-icon">↑</div><h3>Drop your leaf image here</h3><p>or <button class="text-button" id="browseBtn">browse files</button> from your device</p><small>JPG, PNG or WEBP · Max 8 MB</small>
+          <div class="preview-wrap" id="previewWrap" hidden><img id="preview" alt="Selected leaf preview"><button id="removeImage" class="remove-image" aria-label="Remove image">×</button></div>
+        </div>
+        <div class="upload-controls"><div class="privacy-note"><span>♧</span> Your image is processed by this app's server.</div><button class="primary-btn" id="analyzeBtn" disabled>Analyze leaf <span>↗</span></button></div>
+        <div class="result-box" id="resultBox" hidden aria-live="polite"></div>
+      </article>
+      <article class="panel guide-panel" id="advisory">
+    <div class="panel-heading">
+        <div>
+            <div class="section-kicker">SMART FARMING GUIDE</div>
+            <h2>Crop Care Assistant</h2>
+            <p>Simple guidance for healthier crops and better growth.</p>
+        </div>
+        <span class="round-leaf pale">🌱</span>
+    </div>
+
+    <div class="tip-list">
+        <div class="tip-item">
+            <div class="tip-number">01</div>
+            <div>
+                <strong>Inspect your crops</strong>
+                <p>Check both sides of leaves regularly for unusual spots or damage.</p>
+            </div>
+        </div>
+
+        <div class="tip-item">
+            <div class="tip-number">02</div>
+            <div>
+                <strong>Upload clear leaf images</strong>
+                <p>Use natural daylight and focus on one leaf for better analysis.</p>
+            </div>
+        </div>
+
+        <div class="tip-item">
+            <div class="tip-number">03</div>
+            <div>
+                <strong>Improve crop health</strong>
+                <p>Maintain proper watering, spacing and airflow between plants.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="expert-note">
+        <span class="expert-icon">✦</span>
+        <div>
+            <strong>AI-powered crop guidance</strong>
+            <p>Use predictions as a starting point and verify serious issues with an agricultural expert.</p>
+        </div>
+    </div>
+</article>
+      
+    </section>
+    <section class="bottom-grid" id="history">
+      <article class="panel history-panel"><div class="panel-heading compact"><div><div class="section-kicker">YOUR ACTIVITY</div><h2>Recent scans</h2></div><span class="history-count" id="historyCount">0 scans</span></div><div class="empty-history" id="emptyHistory"><div class="empty-icon">◷</div><strong>Your scan history will appear here</strong><p>Analyze your first leaf to see results in this session.</p></div><div id="historyList" class="history-list"></div></article>
+      <article class="panel coverage-panel"><div class="section-kicker">BUILT FOR THE FIELD</div><h2>Clarity from leaf to harvest.</h2><p>Use image-based predictions alongside field observations and trusted local expertise.</p><div class="coverage-tags"><span>Image analysis</span><span>Actionable guidance</span><span>Responsive design</span></div><div class="field-art"><div class="sun"></div><div class="hill hill-back"></div><div class="hill hill-front"></div><div class="plant plant-one">♧</div><div class="plant plant-two">♧</div><div class="plant plant-three">♧</div></div></article>
+    </section>
+    <footer>© 2026 Verdant AI <span>Built for more informed crop care</span><span class="footer-disclaimer">Educational prototype · Verify diagnoses locally</span></footer>
+    <section class="panel" id="crop-chat">
+  <h2>🌱 AI Crop Doctor</h2>
+  <p>Ask about a crop disease and its care.</p>
+
+  <div id="chatMessages" aria-live="polite">
+    <p><strong>Crop Doctor:</strong> Hello! Tell me the crop or disease name.</p>
+  </div>
+
+  <form id="chatForm">
+    <input id="chatInput" type="text"
+           placeholder="e.g. Tomato early blight" required>
+    <button type="submit">Send</button>
+  </form>
+</section>
+  </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>
