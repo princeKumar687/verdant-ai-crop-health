@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdant AI | Admin Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6f1;
+            color: #263b2e;
+        }
+        header {
+            background: #1c4932;
+            color: white;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        header h2 { margin: 0; }
+        header a {
+            color: white;
+            text-decoration: none;
+            background: #326548;
+            padding: 10px 16px;
+            border-radius: 7px;
+        }
+        main { padding: 30px 5%; }
+        .welcome { margin-bottom: 25px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000008;
+        }
+        .card p { color: #718071; margin: 0 0 10px; }
+        .card h2 { color: #1c4932; margin: 0; }
+        .table-box {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e8eee8;
+        }
+        th { background: #edf4ed; color: #1c4932; }
+        .empty { text-align: center; padding: 25px; color: #718071; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>🌿 Verdant AI Admin</h2>
+    <a href="{{ url_for('admin_logout') }}">Logout</a>
+</header>
+
+<main>
+    <div class="welcome">
+        <h1>Admin Dashboard</h1>
+        <p>Manage and monitor seed marketplace orders.</p>
+    </div>
+
+    <section class="stats">
+        <div class="card">
+            <p>Total Orders</p>
+            <h2>{{ orders|length }}</h2>
+        </div>
+        <div class="card">
+            <p>Total Order Value</p>
+            <h2>₹{{ "%.2f"|format(orders|sum(attribute='total_price')) }}</h2>
+        </div>
+        <div class="card">
+            <p>Payment Method</p>
+            <h2>Cash on Delivery</h2>
+        </div>
+    </section>
+
+    <section class="table-box">
+        <h2>Recent Orders</h2>
+
+        {% if orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Delivery Address</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order['order_id'] }}</td>
+                    <td>{{ order['name'] }}</td>
+                    <td>{{ order['phone'] }}</td>
+                    <td>{{ order['product'] }}</td>
+                    <td>{{ order['quantity'] }}</td>
+                    <td>₹{{ order['total_price'] }}</td>
+                    <td>{{ order['payment_method'] }}</td>
+                    <td>{{ order['status'] }}</td>
+                    <td>
+    {{ order['address'] }}, {{ order['city'] }},
+    {{ order['state'] }} - {{ order['pincode'] }}
+</td>
+                    <td>{{ order['created_at'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No orders have been placed yet.</p>
+        {% endif %}
+    </section>
+</main>
+
+</body>
+</html>

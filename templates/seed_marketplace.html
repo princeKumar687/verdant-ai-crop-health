@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verdant AI | Seed Marketplace</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#f5f5ed;color:#20372b;
+}
+nav{
+  background:#123b2a;color:white;padding:20px 6%;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.logo{font-size:23px;font-weight:700;letter-spacing:.5px}
+.logo span{color:#c8dc91}
+nav a{color:#e8efdf;text-decoration:none;margin-left:25px;font-size:14px}
+.hero{
+  background:linear-gradient(110deg,#102f23,#28563b);
+  color:white;padding:75px 8%;position:relative;overflow:hidden;
+}
+.hero h1{
+  font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,58px);
+  max-width:650px;line-height:1.12;margin-bottom:18px;
+}
+.hero p{color:#d3dfd0;max-width:500px;line-height:1.8}
+.hero .tag{
+  color:#d5e7a2;font-size:12px;letter-spacing:2px;
+  margin-bottom:18px;display:block;
+}
+.hero button,.sell-btn{
+  background:#d5e7a2;color:#183b2a;border:0;
+  padding:14px 23px;border-radius:8px;font-weight:700;
+  margin-top:25px;cursor:pointer;
+}
+.hero-art{
+  position:absolute;right:9%;top:50%;transform:translateY(-50%);
+  font-size:145px;opacity:.9;
+}
+.container{max-width:1200px;margin:auto;padding:55px 6%}
+.section-top{
+  display:flex;justify-content:space-between;align-items:end;
+  gap:15px;margin-bottom:25px;flex-wrap:wrap;
+}
+h2{font-family:'Playfair Display',serif;font-size:32px}
+.muted{color:#788579;font-size:14px;margin-top:8px}
+.search{
+  width:100%;padding:16px 18px;border:1px solid #dce2d6;
+  border-radius:10px;background:white;font-size:14px;
+  outline:none;margin-bottom:24px;
+}
+.categories{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
+.categories span{
+  padding:10px 17px;background:white;border:1px solid #e1e6dc;
+  border-radius:30px;font-size:13px;color:#42604c;
+}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:22px;
+}
+.card{
+  background:white;border:1px solid #e5e8df;
+  border-radius:16px;overflow:hidden;transition:.25s;
+}
+.card:hover{transform:translateY(-5px);box-shadow:0 15px 35px #1c38201a}
+.product-art{
+  height:170px;display:flex;align-items:center;justify-content:center;
+  font-size:76px;background:linear-gradient(135deg,#e8edda,#d7e5c9);
+}
+.card-info{padding:20px}
+.quality{font-size:11px;color:#65804b;letter-spacing:1px}
+.card h3{font-size:19px;margin:9px 0}
+.card p{font-size:13px;color:#7a857a;line-height:1.6}
+.price{font-size:21px;font-weight:700;margin:17px 0}
+.price small{font-size:12px;color:#899187;font-weight:400}
+.card button{
+  width:100%;padding:12px;border:0;border-radius:8px;
+  background:#1c4932;color:white;font-weight:600;cursor:pointer;
+}
+.sell{
+  margin-top:60px;padding:38px;border-radius:18px;
+  background:#e6ebdc;display:flex;justify-content:space-between;
+  align-items:center;gap:20px;flex-wrap:wrap;
+}
+.sell h2{font-size:27px}
+.sell p{color:#657568;margin-top:8px;font-size:14px}
+.sell-btn{margin:0;background:#1c4932;color:white}
+footer{
+  background:#123b2a;color:#dce8d8;padding:28px 6%;
+  text-align:center;font-size:13px;
+}
+@media(max-width:650px){
+  nav{padding:18px 5%}nav a{margin-left:10px;font-size:12px}
+  .hero{padding:55px 7%}.hero-art{opacity:.18;right:3%;font-size:100px}
+  .container{padding:40px 5%}
+}
+</style>
+</head>
+
+<body>
+<nav>
+  <div class="logo">🌱 VERDANT <span>AI</span></div>
+  <div>
+    <a href="/">Home</a>
+    <a href="#seeds">Marketplace</a>
+    <a href="#sell">Sell Seeds</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <span class="tag">GROW SMARTER. HARVEST BETTER.</span>
+  <h1>Good Seeds Today.<br>Better Harvest Tomorrow.</h1>
+  <p>Discover quality seeds for your farm. Explore products, choose what you need and order with Cash on Delivery.</p>
+  <button onclick="document.getElementById('seeds').scrollIntoView({behavior:'smooth'})">Explore Seeds →</button>
+  <div class="hero-art">🌾</div>
+</header>
+
+<main class="container" id="seeds">
+  <div class="section-top">
+    <div>
+      <h2>Explore Seeds</h2>
+      <p class="muted">Find the right seeds for your next harvest.</p>
+    </div>
+    <span class="muted">Cash on Delivery Available</span>
+  </div>
+
+  <input class="search" type="search" placeholder="Search wheat, tomato, mustard seeds...">
+
+  <div class="categories">
+    <span>All Seeds</span><span>🌾 Grains</span>
+    <span>🥬 Vegetables</span><span>🌻 Oilseeds</span>
+  </div>
+
+  <div class="grid">
+    <article class="card">
+      <div class="product-art">🌾</div>
+      <div class="card-info">
+        <span class="quality">QUALITY SEEDS</span>
+        <h3>Wheat Seeds</h3>
+        <p>Seeds for wheat cultivation.</p>
+        <div class="price">₹500 <small>/ kg</small></div>
+    <button onclick="openProduct('Wheat Seeds', 500, 'kg')">
+    View Product
+</button>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="product-art">🍅</div>
+      <div class="card-info">
+        <span class="quality">QUALITY SEEDS</span>
+        <h3>Tomato Seeds</h3>
+        <p>Seeds for tomato cultivation.</p>
+        <div class="price">₹200 <small>/ packet</small></div>
+        <button onclick="openProduct('Tomato Seeds', 200, 'packet')">
+    View Product
+</button>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="product-art">🌻</div>
+      <div class="card-info">
+        <span class="quality">QUALITY SEEDS</span>
+        <h3>Mustard Seeds</h3>
+        <p>Seeds for mustard farming.</p>
+        <div class="price">₹300 <small>/ kg</small></div>
+        <button onclick="openProduct('Mustard Seeds', 300, 'kg')">
+    View Product
+</button>
+      </div>
+    </article>
+  </div>
+
+  <section class="sell" id="sell">
+    <div>
+      <h2>Are you a seed seller?</h2>
+      <p>List your seeds and connect with buyers through Verdant AI.</p>
+    </div>
+    <button class="sell-btn" onclick="openSellerForm()">
+    Start Selling →
+</button>
+  </section>
+</main>
+
+<footer>© 2026 Verdant AI · Growing better, together.</footer>
+<script>
+
+function openProduct(name, price, unit) {
+    const modal = document.createElement("div");
+
+    modal.id = "productModal";
+    modal.style.cssText = `
+        position:fixed; inset:0; background:#0009;
+        display:flex; align-items:center; justify-content:center;
+        z-index:9999; padding:20px;
+    `;
+
+    modal.innerHTML = `
+        <div style="background:white; color:#20372b;
+        padding:30px; border-radius:18px; width:100%;
+        max-width:450px; position:relative;">
+
+            <button onclick="document.getElementById('productModal').remove()"
+            style="position:absolute;right:15px;top:12px;
+            border:0;background:none;font-size:24px;cursor:pointer">×</button>
+
+            <h2 id="productName"></h2>
+            <p style="margin:15px 0;color:#788579">
+                Quality agricultural seeds for better cultivation.
+            </p>
+
+            <h2 id="productPrice"></h2>
+
+            <label>Quantity</label>
+            <div style="display:flex;gap:15px;align-items:center;margin:15px 0">
+                <button onclick="changeQty(-1)">−</button>
+                <span id="quantity">1</span>
+                <button onclick="changeQty(1)">+</button>
+            </div>
+
+            <h3 id="totalPrice"></h3>
+
+            <button onclick="buyProduct()"
+            style="width:100%;padding:14px;background:#1c4932;
+            color:white;border:0;border-radius:8px;margin-top:20px">
+                Buy Now — Cash on Delivery
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    window.productPrice = price;
+    window.productQty = 1;
+    window.currentProduct = name;
+    window.productUnit = unit;
+
+    document.getElementById("productName").textContent = name;
+    document.getElementById("productPrice").textContent =
+        "₹" + price + " / " + unit;
+
+    updateTotal();
+}
+
+function changeQty(change) {
+    window.productQty = Math.max(1, window.productQty + change);
+    document.getElementById("quantity").textContent = window.productQty;
+    updateTotal();
+}
+
+function updateTotal() {
+    document.getElementById("totalPrice").textContent =
+        "Total: ₹" + (window.productPrice * window.productQty);
+}
+
+function buyProduct() {
+    const modal = document.createElement("div");
+
+    modal.style.cssText = `
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.65);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:10000;
+        padding:20px;
+        overflow-y:auto;
+    `;
+
+    modal.innerHTML = `
+        <div style="
+            background:white;
+            color:#20372b;
+            padding:30px;
+            border-radius:18px;
+            width:100%;
+            max-width:500px;
+            max-height:90vh;
+            overflow-y:auto;
+        ">
+            <h2 style="margin-bottom:10px;">Delivery Details</h2>
+            <p style="color:#718071;margin-bottom:20px;">
+                Enter your details to place your order.
+            </p>
+
+            <form id="checkoutForm" onsubmit="submitOrder(event)">
+                <input name="name" placeholder="Full Name" required
+                    style="width:100%;padding:13px;margin:7px 0;">
+
+                <input name="phone" type="tel"
+                    placeholder="Mobile Number" pattern="[0-9]{10}" required
+                    style="width:100%;padding:13px;margin:7px 0;">
+
+                <textarea name="address" placeholder="House / Street Address"
+                    required style="width:100%;padding:13px;margin:7px 0;"></textarea>
+
+                <input name="city" placeholder="City" required
+                    style="width:100%;padding:13px;margin:7px 0;">
+
+                <input name="state" placeholder="State" required
+                    style="width:100%;padding:13px;margin:7px 0;">
+
+                <input name="pincode" placeholder="PIN Code"
+                    pattern="[0-9]{6}" required
+                    style="width:100%;padding:13px;margin:7px 0;">
+
+                <p style="margin:15px 0;font-weight:700;">
+                    Payment: Cash on Delivery
+                </p>
+
+                <button type="submit"
+                    style="width:100%;padding:15px;background:#1c4932;
+                    color:white;border:0;border-radius:8px;font-weight:700;">
+                    Place COD Order
+                </button>
+
+                <button type="button" onclick="this.closest('div[style]').parentElement.remove()"
+                    style="width:100%;padding:12px;margin-top:10px;">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+function openSellerForm() {
+    alert("Seller registration form coming soon!");
+}
+async function submitOrder(event) {
+    event.preventDefault();
+
+    const form = document.getElementById("checkoutForm");
+    const formData = new FormData(form);
+
+    const data = Object.fromEntries(formData.entries());
+
+    data.product = window.currentProduct;
+    data.quantity = window.productQty;
+
+    try {
+        const response = await fetch("/api/place-order", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(
+                "Order placed successfully!\nOrder ID: " +
+                result.order_id +
+                "\nTotal: ₹" + result.total
+            );
+            location.reload();
+        } else {
+            alert(result.error || "Order failed. Please try again.");
+        }
+    } catch (error) {
+        alert("Something went wrong. Please try again.");
+    }
+}
+</script>
+</body>
+</html>

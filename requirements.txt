@@ -3,3 +3,5 @@ Pillow>=10.0
 numpy>=1.26
 tensorflow>=2.15
 gunicorn
+google-genai
+python-dotenv

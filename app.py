@@ -1,17 +1,93 @@
 import os, json
+import sqlite3
+import smtplib
+from email.message import EmailMessage
+import uuid
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from werkzeug.utils import secure_filename
 from PIL import Image
 import numpy as np
 
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 ALLOWED = {"png", "jpg", "jpeg", "webp"}
 MODEL_PATH = os.path.join("models", "crop_disease_model.keras")
 CLASS_NAMES_PATH = os.path.join("models", "class_names.json")
+
+def init_db():
+    conn = sqlite3.connect("orders.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS orders (
+            order_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            address TEXT NOT NULL,
+            city TEXT NOT NULL,
+            state TEXT NOT NULL,
+            pincode TEXT NOT NULL,
+            product TEXT NOT NULL,
+            quantity INTEGER NOT NULL,
+            total_price REAL NOT NULL,
+            payment_method TEXT NOT NULL,
+            status TEXT DEFAULT 'Pending',
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+init_db()
+def send_order_email(order):
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = f"New Verdant AI Order - {order['order_id']}"
+        msg["From"] = os.getenv("MAIL_USERNAME")
+        msg["To"] = os.getenv("ORDER_EMAIL")
+
+        msg.set_content(f"""
+New order received on Verdant AI!
+
+Order ID: {order['order_id']}
+Customer: {order['name']}
+Phone: {order['phone']}
+
+Product: {order['product']}
+Quantity: {order['quantity']}
+Total: Rs. {order['total_price']}
+
+Delivery Address:
+{order['address']}, {order['city']},
+{order['state']} - {order['pincode']}
+
+Payment: Cash on Delivery
+""")
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(
+                os.getenv("MAIL_USERNAME"),
+                os.getenv("MAIL_PASSWORD")
+            )
+            smtp.send_message(msg)
+
+        return True
+
+    except Exception:
+        app.logger.exception("Order email failed")
+        return False
 
 # Advisory text is general educational guidance, not a pesticide prescription.
 ADVISORIES = {
@@ -243,6 +319,82 @@ def get_advisory(class_name):
 def index():
     return render_template("index.html", model_ready=MODEL is not None)
 
+@app.route("/marketplace")
+def marketplace():
+    return render_template("seed_marketplace.html")
+
+@app.route("/api/place-order", methods=["POST"])
+def place_order():
+    data = request.get_json(silent=True) or {}
+
+    required = [
+        "name", "phone", "address", "city",
+        "state", "pincode", "product", "quantity"
+    ]
+
+    if any(not str(data.get(key, "")).strip() for key in required):
+        return jsonify({"error": "Please fill all details."}), 400
+
+    try:
+        quantity = int(data["quantity"])
+        if quantity < 1 or quantity > 100:
+            raise ValueError()
+
+        prices = {
+            "Wheat Seeds": 500,
+            "Tomato Seeds": 200,
+            "Mustard Seeds": 300
+        }
+
+        product = data["product"]
+        if product not in prices:
+            return jsonify({"error": "Invalid product."}), 400
+
+        total = prices[product] * quantity
+        order_id = str(uuid.uuid4())[:8].upper()
+
+        conn = sqlite3.connect("orders.db")
+        conn.execute("""
+            INSERT INTO orders (
+                order_id, name, phone, address, city,
+                state, pincode, product, quantity,
+                total_price, payment_method, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            order_id, data["name"].strip(), data["phone"].strip(),
+            data["address"].strip(), data["city"].strip(),
+            data["state"].strip(), data["pincode"].strip(),
+            product, quantity, total, "Cash on Delivery",
+            datetime.now().isoformat()
+        ))
+        conn.commit()
+        conn.close()
+        email_order = {
+        "order_id": order_id,
+        "name": data["name"],
+        "phone": data["phone"],
+        "product": product,
+        "quantity": quantity,
+        "total_price": total,
+        "address": data["address"],
+        "city": data["city"],
+        "state": data["state"],
+        "pincode": data["pincode"]
+    }
+        send_order_email(email_order)
+
+        return jsonify({
+                "success": True,
+                "order_id": order_id,
+                "total": total
+            }), 201
+
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid quantity."}), 400
+    except Exception:
+        app.logger.exception("Order saving failed")
+        return jsonify({"error": "Could not place order."}), 500
+
 @app.route("/api/status")
 def status():
     return jsonify({"model_ready": MODEL is not None, "classes": len(CLASS_NAMES)})
@@ -300,35 +452,51 @@ def analyze():
         app.logger.exception("Image analysis failed")
         return jsonify({"error": "Could not analyze this image. Please try another clear image."}), 400
 @app.route("/chat", methods=["POST"])
+
 def chat():
     data = request.get_json(silent=True) or {}
-    message = data.get("message", "").strip().lower().replace("bright", "blight")
+    message = data.get("message", "").strip()
+
     if not message:
-        return jsonify({"reply": "Please apna sawal likho."}), 400
+        return jsonify({"reply": "Please apna question likho."}), 400
 
-    reply = (
-        "Main Verdant AI Crop Doctor hoon. "
-        "Pehle Disease Detection section mein leaf ki photo analyze karo. "
-        "Phir disease ka naam yahan likho, main available crop-care "
-        "guidance bataunga."
-    )
+    try:
+        from google import genai
 
-    for key, advice in ADVISORIES.items():
-        crop = advice.get("crop", "").lower()
-        disease = advice.get("disease", "").lower()
+        gemini_client = genai.Client(
+            api_key=os.getenv("GEMINI_API_KEY")
+        )
 
-        if key.lower() in message or crop in message or disease in message:
-            actions = advice.get("actions", [])
-            reply = (
-                f"Crop: {advice.get('crop', 'Unknown')}\n"
-                f"Possible disease: {advice.get('disease', 'Unknown')}\n"
-                f"Severity: {advice.get('severity', 'Unknown')}\n"
-                f"Symptoms: {advice.get('symptoms', 'Not available')}\n\n"
-                "Care suggestions:\n- " + "\n- ".join(actions)
-            )
-            break
+        response = gemini_client.models.generate_content(
+            model="gemini-3.5-flash",
+            contents=f"""
+            You are Verdant AI Assistant.
+            You are a helpful general-purpose AI assistant
+            with special knowledge of agriculture and crop health.
 
-    return jsonify({"reply": reply})
+            Answer general questions, coding, education
+            and farming questions.
+
+            Understand Hindi, English and Hinglish.
+            Reply in the language used by the user.
+            Give clear and useful answers.
+
+            For crop diseases, provide educational guidance.
+            Do not claim a confirmed diagnosis without evidence.
+
+            User question: {message}
+            """
+        )
+
+        reply = response.text
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        app.logger.exception("Gemini chatbot error")
+        return jsonify({
+            "reply": "Sorry, chatbot is temporarily unavailable. Please try again."
+        }), 500
+    
 @app.route("/farm-registry", methods=["GET", "POST"])
 def farm_registry():
     import sqlite3
@@ -370,6 +538,41 @@ def farm_registry():
     conn.close()
 
     return render_template("farm_registry.html", records=records)
+@app.route("/admin", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+
+        if (username == os.getenv("ADMIN_USERNAME")
+                and password == os.getenv("ADMIN_PASSWORD")):
+            session["admin_logged_in"] = True
+            return redirect(url_for("admin_dashboard"))
+
+        return render_template("admin_login.html", error="Invalid username or password")
+
+    return render_template("admin_login.html")
+
+
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin_login"))
+
+    conn = sqlite3.connect("orders.db")
+    conn.row_factory = sqlite3.Row
+    orders = conn.execute(
+        "SELECT * FROM orders ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+
+    return render_template("admin_dashboard.html", orders=orders)
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin_logged_in", None)
+    return redirect(url_for("admin_login"))
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
 

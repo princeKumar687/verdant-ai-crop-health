@@ -8,3 +8,5 @@ static/uploads/*
 .env
 .venv/
 farm_registry.db
+orders.db
+
