@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdant AI | Product Management</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6f1;
+            color: #263b2e;
+        }
+        header {
+            background: #17613b;
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        header a { color: white; text-decoration: none; }
+        main { max-width: 1100px; margin: 30px auto; padding: 0 18px; }
+        .panel {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            box-shadow: 0 3px 14px #0000000b;
+        }
+        h2 { margin-top: 0; }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d5dfd5;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        textarea { grid-column: 1 / -1; }
+        button {
+            background: #17613b;
+            color: white;
+            border: 0;
+            padding: 11px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background: #10472b; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e7ece5;
+        }
+        th { background: #edf4ec; }
+        @media(max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            textarea { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h2>🌱 Verdant AI</h2>
+        <span>Product Management</span>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}">← Back to Dashboard</a>
+</header>
+
+<main>
+    <section class="panel">
+        <h2>Add New Product</h2>
+
+        <form method="POST" action="{{ url_for('admin_products') }}">
+            <div class="form-grid">
+                <input name="name" placeholder="Product Name" required>
+
+                <select name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Seeds">Seeds</option>
+                    <option value="Fertilizers">Fertilizers</option>
+                    <option value="Tools">Farming Tools</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <input type="number" name="price" placeholder="Price (₹)"
+                       min="0.01" step="0.01" required>
+
+                <input name="unit" placeholder="Unit (kg, packet, etc.)" required>
+
+                <input type="number" name="stock" placeholder="Available Stock"
+                       min="0" required>
+
+                <input name="image" placeholder="Image URL (optional)">
+
+                <textarea name="description" placeholder="Product Description"
+                          rows="3"></textarea>
+            </div>
+            <br>
+            <button type="submit">+ Add Product</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>All Products</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Unit</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.category }}</td>
+                        <td>₹{{ product.price }}</td>
+                        <td>{{ product.unit }}</td>
+                        <td>{{ product.stock }}</td>
+                        <td>
+    <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}"
+          onsubmit="return confirm('Delete this product?');">
+        <button type="submit">Delete</button>
+    </form>
+</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">No products added yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

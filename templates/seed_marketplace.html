@@ -129,52 +129,34 @@ footer{
     <span class="muted">Cash on Delivery Available</span>
   </div>
 
-  <input class="search" type="search" placeholder="Search wheat, tomato, mustard seeds...">
-
+  <input id="productSearch" class="search" type="search"
+placeholder="Search wheat, tomato, mustard seeds...">
   <div class="categories">
     <span>All Seeds</span><span>🌾 Grains</span>
     <span>🥬 Vegetables</span><span>🌻 Oilseeds</span>
   </div>
 
   <div class="grid">
-    <article class="card">
-      <div class="product-art">🌾</div>
-      <div class="card-info">
+    {% for product in products %}
+<article class="card">
+    <div class="product-art">🌱</div>
+    <div class="card-info">
         <span class="quality">QUALITY SEEDS</span>
-        <h3>Wheat Seeds</h3>
-        <p>Seeds for wheat cultivation.</p>
-        <div class="price">₹500 <small>/ kg</small></div>
-    <button onclick="openProduct('Wheat Seeds', 500, 'kg')">
-    View Product
-</button>
-      </div>
-    </article>
-
-    <article class="card">
-      <div class="product-art">🍅</div>
-      <div class="card-info">
-        <span class="quality">QUALITY SEEDS</span>
-        <h3>Tomato Seeds</h3>
-        <p>Seeds for tomato cultivation.</p>
-        <div class="price">₹200 <small>/ packet</small></div>
-        <button onclick="openProduct('Tomato Seeds', 200, 'packet')">
-    View Product
-</button>
-      </div>
-    </article>
-
-    <article class="card">
-      <div class="product-art">🌻</div>
-      <div class="card-info">
-        <span class="quality">QUALITY SEEDS</span>
-        <h3>Mustard Seeds</h3>
-        <p>Seeds for mustard farming.</p>
-        <div class="price">₹300 <small>/ kg</small></div>
-        <button onclick="openProduct('Mustard Seeds', 300, 'kg')">
-    View Product
-</button>
-      </div>
-    </article>
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.description or 'Quality agricultural product.' }}</p>
+        <div class="price">
+            ₹{{ product.price }} <small>/ {{ product.unit }}</small>
+        </div>
+        <button type="button" class="view-product-btn"
+data-name="{{ product.name }}"
+data-price="{{ product.price }}"
+data-unit="{{ product.unit }}">
+        </button>
+    </div>
+</article>
+{% else %}
+<p>No products available yet.</p>
+{% endfor %}
   </div>
 
   <section class="sell" id="sell">
@@ -189,6 +171,7 @@ footer{
 </main>
 
 <footer>© 2026 Verdant AI · Growing better, together.</footer>
+
 <script>
 
 function openProduct(name, price, unit) {
@@ -371,6 +354,57 @@ async function submitOrder(event) {
         alert("Something went wrong. Please try again.");
     }
 }
+// Search products
+const searchInput = document.querySelector(".search");
+const productCards = document.querySelectorAll(".grid .card");
+
+searchInput.addEventListener("input", function () {
+    const searchText = this.value.toLowerCase();
+
+    productCards.forEach(card => {
+        const productName = card.querySelector("h3").textContent.toLowerCase();
+        card.style.display = productName.includes(searchText) ? "" : "none";
+    });
+});
+
+// Category filters
+const categoryButtons = document.querySelectorAll(".categories span");
+
+categoryButtons.forEach((button, index) => {
+    button.style.cursor = "pointer";
+
+    button.addEventListener("click", function () {
+        const cards = document.querySelectorAll(".grid .card");
+
+        cards.forEach(card => {
+            const name = card.querySelector("h3").textContent.toLowerCase();
+
+            if (index === 0) {
+                card.style.display = "";
+            } else if (index === 1) {
+                card.style.display =
+                    ["wheat"].some(word => name.includes(word)) ? "" : "none";
+            } else if (index === 2) {
+                card.style.display =
+                    ["tomato"].some(word => name.includes(word)) ? "" : "none";
+            } else if (index === 3) {
+                card.style.display =
+                    ["mustard"].some(word => name.includes(word)) ? "" : "none";
+            }
+        });
+
+        searchInput.value = "";
+    });
+});
+document.querySelectorAll(".view-product-btn").forEach(button => {
+    button.addEventListener("click", function () {
+        openProduct(
+            this.dataset.name,
+            Number(this.dataset.price),
+            this.dataset.unit
+        );
+    });
+});
 </script>
 </body>
 </html>

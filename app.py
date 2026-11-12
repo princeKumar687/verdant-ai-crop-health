@@ -45,10 +45,23 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            price REAL NOT NULL,
+            unit TEXT NOT NULL,
+            description TEXT,
+            image TEXT,
+            stock INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+    """)
 
     conn.commit()
     conn.close()
-
+    
 
 init_db()
 def send_order_email(order):
@@ -321,8 +334,19 @@ def index():
 
 @app.route("/marketplace")
 def marketplace():
-    return render_template("seed_marketplace.html")
+    conn = sqlite3.connect("orders.db")
+    conn.row_factory = sqlite3.Row
 
+    products = conn.execute(
+        "SELECT * FROM products ORDER BY id DESC"
+    ).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "seed_marketplace.html",
+        products=products
+    )
 @app.route("/api/place-order", methods=["POST"])
 def place_order():
     data = request.get_json(silent=True) or {}
@@ -335,25 +359,44 @@ def place_order():
     if any(not str(data.get(key, "")).strip() for key in required):
         return jsonify({"error": "Please fill all details."}), 400
 
+    conn = None
+
     try:
         quantity = int(data["quantity"])
+
         if quantity < 1 or quantity > 100:
             raise ValueError()
 
-        prices = {
-            "Wheat Seeds": 500,
-            "Tomato Seeds": 200,
-            "Mustard Seeds": 300
-        }
-
         product = data["product"]
-        if product not in prices:
-            return jsonify({"error": "Invalid product."}), 400
-
-        total = prices[product] * quantity
-        order_id = str(uuid.uuid4())[:8].upper()
 
         conn = sqlite3.connect("orders.db")
+        conn.row_factory = sqlite3.Row
+        conn.execute("BEGIN IMMEDIATE")
+
+        product_row = conn.execute(
+            "SELECT * FROM products WHERE name = ?",
+            (product,)
+        ).fetchone()
+
+        if not product_row:
+            conn.rollback()
+            return jsonify({"error": "Product not found."}), 404
+
+        available_stock = product_row["stock"]
+
+        if available_stock <= 0:
+            conn.rollback()
+            return jsonify({"error": "Out of Stock!"}), 409
+
+        if quantity > available_stock:
+            conn.rollback()
+            return jsonify({
+                "error": f"Only {available_stock} units available."
+            }), 409
+
+        total = product_row["price"] * quantity
+        order_id = str(uuid.uuid4())[:8].upper()
+
         conn.execute("""
             INSERT INTO orders (
                 order_id, name, phone, address, city,
@@ -361,37 +404,45 @@ def place_order():
                 total_price, payment_method, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            order_id, data["name"].strip(), data["phone"].strip(),
-            data["address"].strip(), data["city"].strip(),
-            data["state"].strip(), data["pincode"].strip(),
-            product, quantity, total, "Cash on Delivery",
+            order_id,
+            data["name"].strip(),
+            data["phone"].strip(),
+            data["address"].strip(),
+            data["city"].strip(),
+            data["state"].strip(),
+            data["pincode"].strip(),
+            product,
+            quantity,
+            total,
+            "Cash on Delivery",
             datetime.now().isoformat()
         ))
+
+        conn.execute(
+            "UPDATE products SET stock = stock - ? WHERE id = ?",
+            (quantity, product_row["id"])
+        )
+
         conn.commit()
         conn.close()
-        email_order = {
-        "order_id": order_id,
-        "name": data["name"],
-        "phone": data["phone"],
-        "product": product,
-        "quantity": quantity,
-        "total_price": total,
-        "address": data["address"],
-        "city": data["city"],
-        "state": data["state"],
-        "pincode": data["pincode"]
-    }
-        send_order_email(email_order)
+        conn = None
 
         return jsonify({
-                "success": True,
-                "order_id": order_id,
-                "total": total
-            }), 201
+            "success": True,
+            "order_id": order_id,
+            "total": total
+        }), 201
 
     except (ValueError, TypeError):
+        if conn:
+            conn.rollback()
+            conn.close()
         return jsonify({"error": "Invalid quantity."}), 400
+
     except Exception:
+        if conn:
+            conn.rollback()
+            conn.close()
         app.logger.exception("Order saving failed")
         return jsonify({"error": "Could not place order."}), 500
 
@@ -567,8 +618,104 @@ def admin_dashboard():
     conn.close()
 
     return render_template("admin_dashboard.html", orders=orders)
+@app.route("/admin/update-status/<order_id>", methods=["POST"])
+def update_order_status(order_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin_login"))
 
+    status = request.form.get("status")
+    allowed_statuses = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"]
 
+    if status not in allowed_statuses:
+        return redirect(url_for("admin_dashboard"))
+
+    conn = sqlite3.connect("orders.db")
+    conn.execute(
+        "UPDATE orders SET status = ? WHERE order_id = ?",
+        (status, order_id)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("admin_dashboard"))
+@app.route("/admin/products", methods=["GET", "POST"])
+def admin_products():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin_login"))
+
+    conn = sqlite3.connect("orders.db")
+    conn.row_factory = sqlite3.Row
+
+    if request.method == "POST":
+        try:
+            name = request.form.get("name", "").strip()
+            category = request.form.get("category", "").strip()
+            price = float(request.form.get("price", 0))
+            unit = request.form.get("unit", "").strip()
+            stock = int(request.form.get("stock", 0))
+            image = request.form.get("image", "").strip()
+            description = request.form.get("description", "").strip()
+
+            if not name or not category or not unit or price <= 0 or stock < 0:
+                raise ValueError("Invalid product details")
+
+            conn.execute("""
+                INSERT INTO products
+                (name, category, price, unit, description, image, stock, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                name, category, price, unit, description,
+                image, stock, datetime.now().isoformat()
+            ))
+
+            conn.commit()
+        except (ValueError, TypeError):
+            conn.close()
+            return "Invalid product details. Please check the form.", 400
+
+    products = conn.execute(
+        "SELECT * FROM products ORDER BY id DESC"
+    ).fetchall()
+
+    conn.close()
+
+    return render_template("admin_products.html", products=products)
+
+@app.route("/admin/products/delete/<int:product_id>", methods=["POST"])
+def delete_product(product_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin_login"))
+
+    conn = sqlite3.connect("orders.db")
+    conn.execute("DELETE FROM products WHERE id = ?", (product_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("admin_products"))
+@app.route("/admin/customers")
+def admin_customers():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin_login"))
+
+    conn = sqlite3.connect("orders.db")
+    conn.row_factory = sqlite3.Row
+
+    customers = conn.execute("""
+        SELECT
+            name, phone, address, city, state, pincode,
+            COUNT(order_id) AS total_orders,
+            SUM(total_price) AS total_spent
+        FROM orders
+        GROUP BY phone
+        ORDER BY MAX(created_at) DESC
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "admin_customers.html",
+        customers=customers
+    )
 @app.route("/admin/logout")
 def admin_logout():
     session.pop("admin_logged_in", None)

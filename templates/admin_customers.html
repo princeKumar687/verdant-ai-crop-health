@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdant AI | Customer Management</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6f1;
+            color: #263b2e;
+        }
+        header {
+            background: #17613b;
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header a { color: white; text-decoration: none; }
+        main { max-width: 1200px; margin: 30px auto; padding: 0 18px; }
+        .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 3px 14px #0000000b;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 750px; }
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e7ece5;
+        }
+        th { background: #edf4ec; }
+        .empty { text-align: center; padding: 25px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🌱 Verdant AI</h2>
+            <span>Customer Management</span>
+        </div>
+        <a href="{{ url_for('admin_dashboard') }}">← Back to Dashboard</a>
+    </header>
+
+    <main>
+        <section class="panel">
+            <h2>All Customers</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Total Orders</th>
+                        <th>Total Spent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.address }}, {{ customer.city }}, {{ customer.state }} - {{ customer.pincode }}</td>
+                        <td>{{ customer.total_orders }}</td>
+                        <td>₹{{ customer.total_spent }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="empty">No customers found yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>
